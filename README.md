@@ -8,3 +8,5 @@
 - `cargo build` - `elm make`
 - `cargo install` - `elm install`
 - `cargo fmt` - `elm-format`
+
+VS code https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer

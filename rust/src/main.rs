@@ -71,7 +71,7 @@ fn working_with_functions() {
     let square = |x: u32| x * x;
     let n_squared = square(n);
 
-    let numbers: Vec<u32> = Vec::from([0, 1, 2]);
+    let numbers: Vec<u32> = vec![0, 1, 2];
     let numbers_squared = numbers.into_iter().map(square);
 }
 
@@ -131,7 +131,20 @@ struct PlayerTrack {
     jersey_number: String,
 }
 
-// Enums
+fn working_with_structs_and_enums() {
+    let position = Point { x: 0, y: 0 };
+    let team = Team::Home;
+
+    let player_track = PlayerTrack {
+        position,
+        team,
+        jersey_number: String::from("10"),
+    };
+
+    let jersey_number = player_track.jersey_number;
+
+    let PlayerTrack { team, .. } = player_track;
+}
 
 enum Direction {
     Up,
@@ -248,6 +261,10 @@ fn working_with_options() {
     let option = Some(String::from("10"));
 
     let other_option = option.and_then(|s| s.find("1"));
+
+    // filter_map
+    let strings = vec!["10", "20", "30"];
+    let matches: Vec<_> = strings.iter().filter_map(|s| s.find("1")).collect();
 }
 
 // Collections
@@ -261,10 +278,11 @@ fn working_with_collections() {
     vector.push(1);
     vector.push(2);
 
+    //
     let squared = vector.iter().map(|i| i * i).collect::<Vec<_>>();
 
     // immutable
-    let vector = Vec::from([1, 2]);
+    let vector = vec![1, 2];
 
     // vector.push(1);
 
