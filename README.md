@@ -10,3 +10,5 @@
 - `cargo fmt` - `elm-format`
 
 VS code https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer
+
+Rust Book https://doc.rust-lang.org/book/

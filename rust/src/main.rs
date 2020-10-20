@@ -34,8 +34,13 @@ fn mutablity() {
     // error
     // x = 5;
 
-    let mut x = 10;
-    x = 5;
+    let mut x: f64 = 10.0;
+    x = 5_f64;
+
+    let x = 10;
+    let x = 12;
+
+    // x = "not allowed!";
 
     let mut message = String::from("Hello");
     message.push_str(" world");
@@ -49,10 +54,6 @@ fn mutablity() {
 // - No auto currying
 // - Generics
 
-fn greet(name: String) {
-    println!("Hello, {}", name);
-}
-
 fn is_even(x: u32) -> bool {
     x % 2 == 0
 }
@@ -63,7 +64,7 @@ fn wrap<T>(id: u32, value: T) -> (u32, T) {
 }
 
 fn working_with_functions() {
-    greet(String::from("Derek"));
+    let mut name = String::from("Derek");
 
     let n = 10;
     let even_result = is_even(n);
@@ -115,9 +116,10 @@ fn control_flow() {
 
 // Structs and Enums
 
+// #[derive(Copy, Clone)]
 struct Point {
-    x: u32,
-    y: u32,
+    x: i32,
+    y: i32,
 }
 
 enum Team {
@@ -156,8 +158,12 @@ enum Direction {
 fn step(position: Point, to: Direction) -> Point {
     let Point { x, y } = position;
 
+    // { model | field = foo }
     match to {
-        Direction::Up => Point { x, y: y + 1 },
+        Direction::Up => Point {
+            y: y + 1,
+            ..position
+        },
         Direction::Down => Point { x, y: y - 1 },
         Direction::Left => Point { x: x - 1, y },
         Direction::Right => Point { x: x + 1, y },
@@ -167,7 +173,9 @@ fn step(position: Point, to: Direction) -> Point {
 enum Msg {
     Start,
     Move(Direction),
-    Run(u32, Direction), // Alternativlly, could use anonymous struct: Run { speed: u32, direction: Direction },
+    Run(u32, Direction),
+    // Alternativlly, could use anonymous struct:
+    // Run { speed: u32, direction: Direction },
 }
 
 struct Model {
@@ -176,6 +184,8 @@ struct Model {
 }
 
 fn update(model: Model, msg: Msg) -> Model {
+    // // let move_msg = Msg::Move(Direction::Down);
+
     match msg {
         Msg::Start => Model {
             is_playing: true,
@@ -194,10 +204,18 @@ fn update(model: Model, msg: Msg) -> Model {
 struct QueryResults<T> {
     page: u32,
     next: bool,
-    results: Vec<T>,
+    results: [T; 3],
 }
 
 fn is_last_page<T>(results: QueryResults<T>) -> bool {
+    let mock_results: [u32; 3] = [1, 2, 3];
+
+    let qr = QueryResults {
+        page: 0,
+        next: false,
+        results: mock_results,
+    };
+
     results.next
 }
 
@@ -231,8 +249,11 @@ fn step_if_vertical(position: Point, to: Direction) -> Option<Point> {
     }
 }
 
+// fn get_size(foo: String) -> usize {}
+
 fn working_with_options() {
-    let option = Option::Some(String::from("10")); // more conventional: Some(10);
+    let option = Some(String::from("10")); // more conventional: Some(10);
+                                           // let size: usize = 10;
 
     // match
     let other_option = match option {
@@ -278,13 +299,12 @@ fn working_with_collections() {
     vector.push(1);
     vector.push(2);
 
-    //
-    let squared = vector.iter().map(|i| i * i).collect::<Vec<_>>();
+    let squared: i64 = vector.iter().map(|i| i * i).sum();
 
     // immutable
-    let vector = vec![1, 2];
+    let mut vector = vec![1, 2];
 
-    // vector.push(1);
+    vector.push(1);
 
     // hashset
 
@@ -293,6 +313,8 @@ fn working_with_collections() {
     set.insert(1);
 
     let have_seen_one = set.contains(&1);
+
+    // set.iter().map(|x| x);
 
     // hashmap
 
@@ -304,3 +326,142 @@ fn working_with_collections() {
         println!("Hello, {}", name);
     }
 }
+
+// Memory Safety
+// No garbage collection
+// Ownership: Move, Borrow, Copy, Clone
+// Lifetimes: The scope within which a borrowed reference is valid
+
+fn greet(name: String) {
+    println!("Hello, {}", name);
+    // s is dropped
+    // drop(s);
+}
+
+fn ownership() {
+    // Rules:
+    // Each value in Rust has a variable that's called its owner.
+    // There can only be one owner at a time.
+    // When the owner goes out of scope, the value will be dropped.
+
+    let name = "Derek".to_string();
+    let new_owner_of_name = name;
+
+    // name is moved
+    // println!("{}", name);
+
+    let clone_of_new_owner_of_name = new_owner_of_name.clone();
+
+    greet(new_owner_of_name);
+
+    // new_owner_of_name is moved
+    // println!("{}", new_owner_of_name);
+
+    println!("{}", clone_of_new_owner_of_name);
+
+    // clone_of_new_owner_of_name is dropped
+}
+
+fn is_name_valid(name: &String) -> bool {
+    name.len() < 20
+}
+
+fn truncate(s: &mut String, new_len: usize) {
+    s.truncate(new_len);
+}
+
+// You may have one or the other of these two kinds of borrows, but not both at the same time:
+// - one or more references (&T) to a resource
+// - exactly one mutable reference (&mut T)
+fn multiple_readers_or_single_writers() {
+    let mut name = "Derek".to_string();
+
+    let name_ref_a = &name;
+    let name_ref_b = &name;
+
+    let is_value = is_name_valid(name_ref_a);
+    let is_still_value = is_name_valid(name_ref_b);
+
+    let name_mut_ref = &mut name;
+
+    // &mut is now in scope, cannot also have immutable reference
+    // let name_ref_c = &name;
+
+    truncate(name_mut_ref, 2);
+
+    // name_mut_ref is now out of scope
+    let name_ref_d = &name;
+}
+
+// More structs and enums
+// Copy, Clone
+// Methods
+// Error handling (? operator)
+
+fn is_within_bounds(p: Point, max_x: usize, max_y: usize) -> bool {
+    p.x.abs() as usize <= max_x && p.y.abs() as usize <= max_y
+}
+
+fn city_block_distance(a: &Point, b: &Point) -> usize {
+    ((a.x - b.x).abs() + (a.y - b.y).abs()) as usize
+}
+
+impl Point {
+    pub fn new() -> Self {
+        Point { x: 0, y: 0 }
+    }
+
+    // &self vs self
+    pub fn is_origin(self) -> bool {
+        self.x == 0 && self.y == 0
+    }
+
+    pub fn step(&mut self, direction: Direction) {
+        match direction {
+            Direction::Up => self.y += 1,
+            Direction::Down => self.y -= 1,
+            Direction::Left => self.x -= 1,
+            Direction::Right => self.x += 1,
+        }
+    }
+}
+
+impl Direction {
+    pub fn is_positive(&self) -> bool {
+        match self {
+            Self::Up | Self::Right => true,
+            _ => false,
+        }
+    }
+}
+
+fn working_more_with_structs_and_enums() {
+    let start = Point { x: 0, y: 0 };
+    let end = Point { x: 3, y: -4 };
+
+    // is_within_bounds(end, 10, 10);
+
+    // end is moved
+    // but can derive Copy, Clone on Point since all fields are Copy, Clone
+    let distance = city_block_distance(&start, &end);
+
+    let mut origin = Point::new();
+
+    // move (since not &self)
+    // let is_origin = origin.is_origin();
+
+    let direction = Direction::Down;
+    let is_pos = direction.is_positive();
+
+    // two issues
+    // start.step(direction);
+
+    origin.step(direction);
+}
+
+// Traits
+// https://blog.rust-lang.org/2015/05/11/traits.html
+
+// Iterators
+// https://doc.rust-lang.org/std/iter/trait.Iterator.html
+// is_even iterator adapter
