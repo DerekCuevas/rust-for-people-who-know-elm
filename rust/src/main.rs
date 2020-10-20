@@ -22,7 +22,7 @@ fn main() {
 
     // // destructuring
     // let (px, py) = position;
-    working_with_iterators();
+    working_with_iterator_adapters();
 }
 
 // Immutability
@@ -482,7 +482,6 @@ impl Add for Point {
 // https://doc.rust-lang.org/std/iter/trait.Iterator.html
 // https://doc.rust-lang.org/std/iter/index.html#implementing-iterator
 // impl counter iter
-// is_even iterator adapter
 
 #[derive(Debug)]
 struct Counter {
@@ -522,3 +521,43 @@ fn working_with_iterators() {
 }
 
 // Iterator adapter
+// index iterator adapter
+
+struct IndexAdapter<I: Iterator> {
+    inner: I,
+    index: u32,
+}
+
+impl<I: Iterator> IndexAdapter<I> {
+    pub fn new(inner: I) -> Self {
+        Self { inner, index: 0 }
+    }
+}
+
+impl<I: Iterator> Iterator for IndexAdapter<I> {
+    type Item = (u32, I::Item);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.index += 1;
+        self.inner.next().map(|t| (self.index, t))
+    }
+}
+
+trait Index<I: Iterator> {
+    fn index(self) -> IndexAdapter<I>;
+}
+
+impl<I: Iterator> Index<I> for I {
+    fn index(self) -> IndexAdapter<I> {
+        IndexAdapter::new(self)
+    }
+}
+
+fn working_with_iterator_adapters() {
+    let numbers = vec![5, 4, 3, 2, 1];
+    let mut iter = numbers.iter().index();
+
+    while let Some((index, value)) = iter.next() {
+        println!("index: {}, value: {}", index, value)
+    }
+}
