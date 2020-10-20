@@ -6,22 +6,23 @@
 // - Statically typed
 
 fn main() {
-    let x: i32 = 10;
-    let y: i32 = 20;
-    let is_even: bool = x % 2 == 0;
+    // let x: i32 = 10;
+    // let y: i32 = 20;
+    // let is_even: bool = x % 2 == 0;
 
-    // tuple
-    let position: (i32, i32) = (x, y);
+    // // tuple
+    // let position: (i32, i32) = (x, y);
 
-    // array
-    let uv: [f32; 2] = [0.3, 12.5];
+    // // array
+    // let uv: [f32; 2] = [0.3, 12.5];
 
-    // type inference
-    let z = x + y;
-    let is_complete = true;
+    // // type inference
+    // let z = x + y;
+    // let is_complete = true;
 
-    // destructuring
-    let (px, py) = position;
+    // // destructuring
+    // let (px, py) = position;
+    working_with_iterators();
 }
 
 // Immutability
@@ -398,6 +399,7 @@ fn multiple_readers_or_single_writers() {
 // Methods
 // Error handling (? operator)
 
+// could move to impl
 fn is_within_bounds(p: Point, max_x: usize, max_y: usize) -> bool {
     p.x.abs() as usize <= max_x && p.y.abs() as usize <= max_y
 }
@@ -411,7 +413,7 @@ impl Point {
         Point { x: 0, y: 0 }
     }
 
-    // &self vs self
+    // &self vs self, can omit type
     pub fn is_origin(self) -> bool {
         self.x == 0 && self.y == 0
     }
@@ -461,7 +463,62 @@ fn working_more_with_structs_and_enums() {
 
 // Traits
 // https://blog.rust-lang.org/2015/05/11/traits.html
+// https://doc.rust-lang.org/book/ch19-03-advanced-traits.html
+
+use std::ops::Add;
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, other: Self) -> Self::Output {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
 
 // Iterators
 // https://doc.rust-lang.org/std/iter/trait.Iterator.html
+// https://doc.rust-lang.org/std/iter/index.html#implementing-iterator
+// impl counter iter
 // is_even iterator adapter
+
+#[derive(Debug)]
+struct Counter {
+    count: u32,
+}
+
+impl Counter {
+    pub fn new() -> Self {
+        Counter { count: 0 }
+    }
+}
+
+impl Iterator for Counter {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.count += 1;
+        Some(self.count)
+    }
+}
+
+fn working_with_iterators() {
+    let strings = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+    let mut iter = strings.into_iter();
+
+    let a = iter.next();
+    let b = iter.next();
+
+    // dbg!(strings);
+
+    let mut counter = Counter::new();
+
+    let a = counter.next();
+    let b = counter.next();
+
+    dbg!(counter);
+}
+
+// Iterator adapter
